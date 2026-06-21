@@ -7,13 +7,13 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.js"></script>
 
     <style>
         body {
@@ -107,82 +107,58 @@
         };
 
         // --- Question Generators ---
-
-        // Difficulty: 'easy' | 'hard'
         const generateShortQuestion = (difficulty = 'easy', lastType = null) => {
-            // 定義不同難度的題型池
             let types = [];
-            
             if (difficulty === 'easy') {
-                // 初階: 基礎十字相乘, 簡單平方差, 簡單完全平方, 簡單公因式
                 types = ['common_easy', 'diffSq_easy', 'perfSq_easy', 'cross_easy'];
             } else {
-                // 進階: 進階十字相乘(a>1), 複雜平方差, 複雜完全平方, 較大數字公因式
                 types = ['common_hard', 'diffSq_hard', 'perfSq_hard', 'cross_hard'];
             }
 
             let selectedType = types[Math.floor(Math.random() * types.length)];
-            
-            // 防重複 (簡單重試機制)
             if (selectedType === lastType) {
                 selectedType = types[Math.floor(Math.random() * types.length)];
             }
 
             let latex = "", typeName = "";
 
-            // --- 邏輯分支 ---
-
             if (selectedType === 'common_easy') {
                 typeName = "提取公因式 (基礎)";
                 const k = r(2, 5);
-                // 形式: k(x ± a)
                 const a = r(1, 4);
                 latex = `${fmt(k, 'x')} ${Math.random()>0.5?'+':'-'} ${k*a}`;
-
             } else if (selectedType === 'common_hard') {
                 typeName = "提取公因式 (進階)";
-                const k = r(3, 8); // 係數較大
+                const k = r(3, 8); 
                 const a = r(2, 6);
-                // 形式: kx^2 ± kax 或 kxy ± kay
                 if (Math.random() > 0.5) {
                     latex = `${fmt(k, 'x', 2)} ${Math.random()>0.5?'+':'-'} ${fmt(k*a, 'x')}`;
                 } else {
-                    latex = `${fmt(k, 'x')}y ${Math.random()>0.5?'+':'-'} ${fmt(k*a, 'y')}`; // xy + ay
+                    latex = `${fmt(k, 'x')}y ${Math.random()>0.5?'+':'-'} ${fmt(k*a, 'y')}`; 
                 }
-
             } else if (selectedType === 'diffSq_easy') {
                 typeName = "平方差 (基礎)";
-                // x^2 - a^2 (a <= 5)
                 const b = r(1, 5);
                 latex = `x^2 - ${b*b}`;
-
             } else if (selectedType === 'diffSq_hard') {
                 typeName = "平方差 (進階)";
-                // (ax)^2 - (by)^2 (a,b up to 9)
                 const a = r(2, 9);
                 let b = r(1, 9);
-                // 確保互質，避免變成提取公因式
                 if (gcd(a, b) > 1) { b = b === 1 ? 2 : 1; a = r(2,5); } 
                 latex = `${fmt(a*a, 'x', 2)} - ${fmt(b*b, 'y', 2)}`;
-
             } else if (selectedType === 'perfSq_easy') {
                 typeName = "完全平方 (基礎)";
-                // (x ± a)^2, a <= 5
                 const a = r(1, 5);
                 const sign = Math.random()>0.5?'+':'-';
                 latex = `x^2 ${sign} ${2*a}x + ${a*a}`;
-
             } else if (selectedType === 'perfSq_hard') {
                 typeName = "完全平方 (進階)";
-                // (ax ± b)^2, a,b up to 9
-                const a = r(2, 5); // x^2 coefficient limit to 25 to avoid too crazy
+                const a = r(2, 5); 
                 const b = r(1, 9);
                 const sign = Math.random()>0.5?'+':'-';
                 latex = `${fmt(a*a, 'x', 2)} ${sign} ${fmt(2*a*b, 'x')} + ${b*b}`;
-
             } else if (selectedType === 'cross_easy') {
                 typeName = "十字相乘 (基礎)";
-                // x^2 + bx + c (a=1)
                 const n1 = r(-6, 6) || 1;
                 const n2 = r(-6, 6) || 1;
                 const B = n1 + n2;
@@ -191,15 +167,12 @@
                 let last = C > 0 ? `+ ${C}` : `- ${Math.abs(C)}`;
                 latex = `x^2 ${mid} ${last}`;
                 latex = latex.replace(/\s+/g, ' ').replace(/\+\s*\-/g, '- ');
-
             } else if (selectedType === 'cross_hard') {
                 typeName = "十字相乘 (進階)";
-                // ax^2 + bx + c (a = 2,3,5)
                 const aVals = [2, 3, 5];
                 const a = aVals[Math.floor(Math.random() * aVals.length)];
                 let p, q, c;
                 let attempts = 0;
-                // 限制常數項 c 在 +/- 20 內
                 do {
                     p = r(-7, 7);
                     q = r(-5, 5);
@@ -209,7 +182,7 @@
                     attempts++;
                 } while ((Math.abs(c) > 20 || p % a === 0) && attempts < 10);
                 
-                if (p % a === 0) p += 1; // Fallback ensure coprime
+                if (p % a === 0) p += 1; 
 
                 const b = a * q + p;
                 let mid = b === 0 ? "" : (b > 0 ? `+ ${fmt(b, 'x')}` : `- ${fmt(Math.abs(b), 'x')}`);
@@ -296,7 +269,6 @@
 
         // --- Main Component ---
         const FactorizationGameV6 = () => {
-            // gameMode: 'short_easy' | 'short_hard' | 'long'
             const [appState, setAppState] = useState('menu'); 
             const [gameMode, setGameMode] = useState('short_easy'); 
             const [questions, setQuestions] = useState([]);
@@ -320,12 +292,10 @@
                 setCurrentPartIndex(0);
                 setPartAnswers({});
                 
-                // Initial Question
                 let firstQ;
                 if (mode === 'long') {
                     firstQ = generateLongQuestion();
                 } else {
-                    // mode is 'short_easy' or 'short_hard'
                     const difficulty = mode === 'short_easy' ? 'easy' : 'hard';
                     firstQ = generateShortQuestion(difficulty);
                     setLastQuestionType(firstQ.rawType);
@@ -469,7 +439,6 @@
                             </div>
                         </div>
                         
-                        {/* Beginner Button */}
                         <button onClick={() => startGame('short_easy')} className="group bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-green-500 transition-all text-left">
                             <div className="flex items-center gap-4">
                                 <div className="bg-green-100 p-3 rounded-full text-green-600"><Feather size={24}/></div>
@@ -480,7 +449,6 @@
                             </div>
                         </button>
 
-                        {/* Advanced Button */}
                         <button onClick={() => startGame('short_hard')} className="group bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-orange-500 transition-all text-left">
                             <div className="flex items-center gap-4">
                                 <div className="bg-orange-100 p-3 rounded-full text-orange-600"><Zap size={24}/></div>
@@ -491,7 +459,6 @@
                             </div>
                         </button>
 
-                        {/* Long Question Button */}
                         <button onClick={() => startGame('long')} className="group bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-100 hover:border-purple-500 transition-all text-left">
                             <div className="flex items-center gap-4">
                                 <div className="bg-purple-100 p-3 rounded-full text-purple-600"><Layers size={24}/></div>
